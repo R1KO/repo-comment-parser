@@ -40,15 +40,17 @@ class Github
     async getPaginatedList(getPage, perPage) {
         const list = [];
 
+        console.log('getPaginatedList', perPage);
         let count = 0;
 
         let page = 1;
         while (true) {
             count++;
-            if (count > 100) {
+            if (count > 5) {
                 return;
             }
-            let pageList = getPage(page, perPage);
+            let pageList = await getPage(page, perPage);
+            console.log('pageList.length', pageList.length);
             if (pageList.length) {
                 list.push(...pageList);
             }
@@ -64,7 +66,7 @@ class Github
 
     async getCommentsListByCommit(owner, repo, commit) {
         return await this.getPaginatedList(
-            (page, perPage) => this.getCommitComments(owner, repo, commit, page, perPage),
+            async (page, perPage) => this.getCommitComments(owner, repo, commit, page, perPage),
             100
         );
     };
@@ -75,7 +77,7 @@ class Github
 
     async getCommentsListByPullRequest(owner, repo, request) {
         return await this.getPaginatedList(
-            (page, perPage) => this.getPullRequestComments(owner, repo, request, page, perPage),
+            async (page, perPage) => await this.getPullRequestComments(owner, repo, request, page, perPage),
             100
         );
     };
@@ -86,7 +88,7 @@ class Github
 
     async getCommentReactionsList(owner, repo, comment) {
         return await this.getPaginatedList(
-            (page, perPage) => this.getCommentReactions(owner, repo, comment, page, perPage),
+            async (page, perPage) => await this.getCommentReactions(owner, repo, comment, page, perPage),
             100
         );
     };
@@ -101,18 +103,22 @@ class Github
             });
     };
 
-    async getPreparedData(owner, repo, comments) {
+    async getPullCommentReactions(owner, repo, comment, page, perPage) {
+        return await this.request(
+            `https://api.github.com/repos/${owner}/${repo}/pulls/comments/${comment}/reactions?per_page=${perPage}&page=${page}`,
+            {
+                headers: {
+                    'Accept': 'application/vnd.github.squirrel-girl-preview+json',
+                },
+            });
+    };
+
+    async getPreparedData(comments, reactionsLoader) {
         console.log('getPreparedData', comments);
 
         if (!comments || !comments.length) {
             return null;
         }
-        // Кол-во сессий -
-        // Кол-во коммитов -
-        // Кол-во комментариев
-        // Лайки
-        // Дизлайки
-        // Отмечен админом -
 
         const reviewers = new Map();
 
@@ -136,6 +142,7 @@ class Github
 
             author.comments++;
 
+            const reactions = await reactionsLoader(owner, repo, comment.id);
             const reactions = await this.getCommentReactions(owner, repo, comment.id);
             console.log('reactions', reactions);
 
