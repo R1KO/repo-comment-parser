@@ -41,14 +41,14 @@ class Github
         const list = [];
 
         console.log('getPaginatedList', perPage);
-        let count = 0;
+        // let count = 0;
 
         let page = 1;
         while (true) {
-            count++;
-            if (count > 5) {
-                return;
-            }
+            // count++;
+            // if (count > 5) {
+            //     return;
+            // }
             let pageList = await getPage(page, perPage);
             if (!pageList) {
                 break;
@@ -192,7 +192,7 @@ class Github
             return await this.getPreparedData(comments, async (comment) => await this.getPullCommentReactions(params.owner, params.repo, comment.id));
         }
 
-        return null;
+        return [];
     }
 }
 
