@@ -50,6 +50,9 @@ class Github
                 return;
             }
             let pageList = await getPage(page, perPage);
+            if (!pageList) {
+                break;
+            }
             console.log('pageList.length', pageList.length);
             if (pageList.length) {
                 list.push(...pageList);
@@ -66,7 +69,7 @@ class Github
 
     async getCommentsListByCommit(owner, repo, commit) {
         return await this.getPaginatedList(
-            async (page, perPage) => this.getCommitComments(owner, repo, commit, page, perPage),
+            async (page, perPage) => await this.getCommitComments(owner, repo, commit, page, perPage),
             100
         );
     };
@@ -142,15 +145,18 @@ class Github
 
             author.comments++;
 
-            const reactions = await reactionsLoader(owner, repo, comment.id);
-            const reactions = await this.getCommentReactions(owner, repo, comment.id);
+            const reactions = await reactionsLoader(comment);
+            // const reactions = await this.getCommentReactions(owner, repo, comment.id);
             console.log('reactions', reactions);
 
             if (reactions && reactions.length) {
                 for (const reaction of reactions) {
+                    console.log('reaction', reaction.content);
                     if (reactionsPlus.includes(reaction.content)) {
+                        console.log('reactionsPlus');
                         author.reactionsPlus++;
                     } else if (reactionsMinus.includes(reaction.content)) {
+                        console.log('reactionsMinus');
                         author.reactionsMinus++;
                     }
                 }
@@ -176,14 +182,14 @@ class Github
             const comments = await this.getCommentsListByCommit(params.owner, params.repo, params.commit);
             console.log('comments', comments);
 
-            return await this.getPreparedData(params.owner, params.repo, comments);
+            return await this.getPreparedData(comments, async (comment) => await this.getCommentReactions(params.owner, params.repo, comment.id));
         }
 
         if (params.pull) {
             const comments = await this.getCommentsListByPullRequest(params.owner, params.repo, params.pull);
             console.log('comments', comments);
 
-            return await this.getPreparedData(params.owner, params.repo, comments);
+            return await this.getPreparedData(comments, async (comment) => await this.getPullCommentReactions(params.owner, params.repo, comment.id));
         }
 
         return null;

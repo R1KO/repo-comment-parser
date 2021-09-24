@@ -3,6 +3,7 @@ import {Row, Col, Form, Input, Button, Space, Card} from 'antd';
 import {getHandlerByUrl} from './common/urlParser';
 import {MinusCircleOutlined, PlusOutlined} from '@ant-design/icons';
 import React, {useState} from 'react';
+import Report from './Report';
 
 const formItemLayout = {
     labelCol:   {
@@ -22,6 +23,8 @@ const formItemLayoutWithOutLabel = {
 };
 
 function App() {
+    const [reportData, setReportData] = useState(null);
+
     const onFinish = async (values) => {
         console.log('Success:', values);
 
@@ -36,6 +39,7 @@ function App() {
                 }
                 const data = await handler.getDataByUrl(link);
                 console.log('data:', data);
+                setReportData(data);
             });
         });
     };
@@ -95,7 +99,7 @@ function App() {
                         autoComplete="off"
                         initialValues={{
                             // links: [''],
-                            github_token: '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',
+                            github_token: process.env.GTIHUB_TOKEN || '',
                         }}
                         {...formItemLayoutWithOutLabel}
                     >
@@ -160,6 +164,7 @@ function App() {
                     </Form>
                 </Col>
             </Row>
+            {reportData && <Report data={reportData}/>}
         </div>
     );
 }
