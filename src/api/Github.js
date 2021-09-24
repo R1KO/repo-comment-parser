@@ -1,10 +1,7 @@
 
-
-
 class Github
 {
-    constructor() {
-
+    constructor(token) {
     }
 
     setToken(token) {
@@ -14,6 +11,7 @@ class Github
     getParamsFromUrl(url) {
         const patterns = [
             /https:\/\/github\.com\/(?<owner>[\w-]+)\/(?<repo>[\w-]+)\/commit\/(?<commit>[\w-]+)/,
+            /https:\/\/github\.com\/(?<owner>[\w-]+)\/(?<repo>[\w-]+)\/pull\/(?<pull>\d+)/,
         ];
 
         for (const pattern of patterns) {
@@ -29,6 +27,10 @@ class Github
 
     async request(url, options) {
         if (this.token) {
+            options = options || {};
+            if (!options.hasOwnProperty('headers')) {
+                options.headers = {};
+            }
             options.headers['Authorization'] = `token ${this.token}`;
         }
         let response = await fetch(url, options);
@@ -38,8 +40,14 @@ class Github
     async getPaginatedList(getPage, perPage) {
         const list = [];
 
+        let count = 0;
+
         let page = 1;
         while (true) {
+            count++;
+            if (count > 100) {
+                return;
+            }
             let pageList = getPage(page, perPage);
             if (pageList.length) {
                 list.push(...pageList);
@@ -55,7 +63,6 @@ class Github
     };
 
     async getCommentsListByCommit(owner, repo, commit) {
-
         return await this.getPaginatedList(
             (page, perPage) => this.getCommitComments(owner, repo, commit, page, perPage),
             100
@@ -64,6 +71,17 @@ class Github
 
     async getCommitComments(owner, repo, commit, page, perPage) {
         return await this.request(`https://api.github.com/repos/${owner}/${repo}/commits/${commit}/comments?per_page=${perPage}&page=${page}`);
+    };
+
+    async getCommentsListByPullRequest(owner, repo, request) {
+        return await this.getPaginatedList(
+            (page, perPage) => this.getPullRequestComments(owner, repo, request, page, perPage),
+            100
+        );
+    };
+
+    async getPullRequestComments(owner, repo, request, page, perPage) {
+        return await this.request(`https://api.github.com/repos/${owner}/${repo}/pulls/${request}/comments?per_page=${perPage}&page=${page}`);
     };
 
     async getCommentReactionsList(owner, repo, comment) {
@@ -139,6 +157,7 @@ class Github
 
 
     async getDataByUrl(url) {
+        console.log('getDataByUrl', url);
         const params = this.getParamsFromUrl(url);
         console.log('getParamsFromUrl', params);
         if (!params) {
@@ -147,7 +166,14 @@ class Github
         }
 
         if (params.commit) {
-            const comments = await this.getCommitComments(params.owner, params.repo, params.commit);
+            const comments = await this.getCommentsListByCommit(params.owner, params.repo, params.commit);
+            console.log('comments', comments);
+
+            return await this.getPreparedData(params.owner, params.repo, comments);
+        }
+
+        if (params.pull) {
+            const comments = await this.getCommentsListByPullRequest(params.owner, params.repo, params.pull);
             console.log('comments', comments);
 
             return await this.getPreparedData(params.owner, params.repo, comments);

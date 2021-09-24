@@ -2,9 +2,7 @@ import './App.css';
 import {Row, Col, Form, Input, Button, Space, Card} from 'antd';
 import {getHandlerByUrl} from './common/urlParser';
 import {MinusCircleOutlined, PlusOutlined} from '@ant-design/icons';
-import {useState} from 'react';
-// import OAuth2Login from 'react-oauth2-login';
-
+import React, {useState} from 'react';
 
 const formItemLayout = {
     labelCol:   {
@@ -23,96 +21,23 @@ const formItemLayoutWithOutLabel = {
     },
 };
 
-
-const DynamicFieldSet = () => {
-    const onFinish = values => {
-        console.log('Received values of form:', values);
-    };
-
-    return (
-        <Form name="dynamic_form_item" {...formItemLayoutWithOutLabel} onFinish={onFinish}>
-            <Form.List
-                name="names"
-                rules={[
-                    {
-                        validator: async (_, names) => {
-                            if (!names || names.length < 2) {
-                                return Promise.reject(new Error('At least 2 passengers'));
-                            }
-                        },
-                    },
-                ]}
-            >
-                {(fields, {add, remove}, {errors}) => (
-                    <>
-                        {fields.map((field, index) => (
-                            <Form.Item
-                                {...(index === 0 ? formItemLayout : formItemLayoutWithOutLabel)}
-                                label={index === 0 ? 'Passengers' : ''}
-                                required={false}
-                                key={field.key}
-                            >
-                                <Form.Item
-                                    {...field}
-                                    validateTrigger={['onChange', 'onBlur']}
-                                    rules={[
-                                        {
-                                            required:   true,
-                                            whitespace: true,
-                                            message:    "Please input passenger's name or delete this field.",
-                                        },
-                                    ]}
-                                    noStyle
-                                >
-                                    <Input placeholder="passenger name" style={{width: '60%'}} />
-                                </Form.Item>
-                                {fields.length > 1 ? (
-                                    <MinusCircleOutlined
-                                        className="dynamic-delete-button"
-                                        onClick={() => remove(field.name)}
-                                    />
-                                ) : null}
-                            </Form.Item>
-                        ))}
-                        <Form.Item>
-                            <Button
-                                type="dashed"
-                                onClick={() => add()}
-                                style={{width: '60%'}}
-                                icon={<PlusOutlined />}
-                            >
-                                Add field
-                            </Button>
-                            <Button
-                                type="dashed"
-                                onClick={() => {
-                                    add('The head item', 0);
-                                }}
-                                style={{width: '60%', marginTop: '20px'}}
-                                icon={<PlusOutlined />}
-                            >
-                                Add field at head
-                            </Button>
-                            <Form.ErrorList errors={errors} />
-                        </Form.Item>
-                    </>
-                )}
-            </Form.List>
-            <Form.Item>
-                <Button type="primary" htmlType="submit">
-                    Submit
-                </Button>
-            </Form.Item>
-        </Form>
-    );
-};
-
 function App() {
     const onFinish = async (values) => {
         console.log('Success:', values);
-        const handler = getHandlerByUrl(values.link);
-        const data = await handler.getDataByUrl(values.link);
-        console.log('data:', data);
+
+        console.log('sessions:', sessions);
+        sessions.map(async (session) => {
+            console.log('session:', session);
+            session.links.map(async (link) => {
+                console.log('link:', link);
+                const handler = getHandlerByUrl(link);
+                if (values.github_token.length) {
+                    handler.setToken(values.github_token);
+                }
+                const data = await handler.getDataByUrl(link);
+                console.log('data:', data);
+            });
+        });
     };
 
     const onFinishFailed = (errorInfo) => {
@@ -120,7 +45,13 @@ function App() {
     };
 
     const [sessions, setSessions] = useState([
-        {links: [''],},
+        {
+            links: [
+                'https://github.com/TimurBaldin/BumblebeeGeneratorService/pull/14'
+                // 'https://github.com/andreaskosten/php_examples/commit/19c5500941ec544128962b29ffe6da9eb0ad07d1',
+                // 'https://github.com/mbogomazov/angular-tictactoe-pwa/commit/428fb3da1f9f0684d65d154bca417a7f5832b648',
+            ],
+        },
     ]);
 
     const addSession = () => {
@@ -151,20 +82,8 @@ function App() {
         })]);
     }
 
-    // const onSuccess = response => console.log(response);
-    // const onFailure = response => console.error(response);
-    //
-    // console.log('GTIHUB_APP_CLIENT_ID', process.env.GTIHUB_APP_CLIENT_ID);
-    // console.log('GTIHUB_APP_CLIENT_SECRET', process.env.GTIHUB_APP_CLIENT_SECRET);
-
     return (
         <div className="App" style={{marginTop: 100}}>
-            <OAuth2Login
-                clientId={process.env.GTIHUB_APP_CLIENT_ID}
-                authorizeUri={process.env.GTIHUB_APP_CLIENT_SECRET}
-                onSuccess={onSuccess}
-                onFailure={onFailure}
-            />
             <Row>
                 <Col span={12} offset={6}>
                     {/*<DynamicFieldSet/>*/}
@@ -174,16 +93,34 @@ function App() {
                         onFinish={onFinish}
                         onFinishFailed={onFinishFailed}
                         autoComplete="off"
-                        initialValues={{links: ['']}}
+                        initialValues={{
+                            // links: [''],
+                            github_token: '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',
+                        }}
                         {...formItemLayoutWithOutLabel}
                     >
+                        <Space direction="vertical" style={{width: '100%'}}>
+                            <Form.Item
+                                label="Gtihub token"
+                                name="github_token"
+                                rules={[
+                                    {
+                                        required: false,
+                                        message: 'Please input your token!',
+                                    },
+                                ]}
+                            >
+                                <Input />
+                            </Form.Item>
+                        </Space>
+
                         {sessions.map((session, index) => {
                             return <Space key={index} direction="vertical" style={{width: '100%'}}>
                                 <Card title={`Session ${index + 1}`}
                                       extra={<a onClick={() => delSession(index)} href="#">Delete</a>}>
                                     {session.links.map((link, linkIndex) => {
                                         return <Form.Item key={linkIndex}>
-                                            <Input placeholder="Link" />
+                                            <Input placeholder="Link" value={link}/>
                                         </Form.Item>
                                     })}
 
@@ -228,118 +165,3 @@ function App() {
 }
 
 export default App;
-/*
-
-                    <Form
-                        name="basic"
-                        layout="vertical"
-                        onFinish={onFinish}
-                        onFinishFailed={onFinishFailed}
-                        autoComplete="off"
-                        initialValues={{links: ['']}}
-                        {...formItemLayoutWithOutLabel}
-                    >
-                        <Form.List name="links">
-                            {(fields, {add, remove}, { errors }) => (
-                                <>
-                                {fields.map((field, index) => (
-                                    <Form.Item
-                                        {...(index === 0 ? formItemLayout : formItemLayoutWithOutLabel)}
-                                        label={index === 0 ? 'Passengers' : ''}
-                                        required={false}
-                                        key={field.key}
-                                    >
-                                        <Form.Item
-                                            {...field}
-                                            validateTrigger={['onChange', 'onBlur']}
-                                            rules={[
-                                                {
-                                                    required: true,
-                                                    whitespace: true,
-                                                    message: "Please input passenger's name or delete this field.",
-                                                },
-                                            ]}
-                                            noStyle
-                                        >
-                                            <Input placeholder="passenger name" style={{ width: '60%' }} />
-                                        </Form.Item>
-                                        {fields.length > 1 ? (
-                                            <MinusCircleOutlined
-                                                styles={{marginLeft: 10}}
-                                                className="dynamic-delete-button"
-                                                onClick={() => remove(field.name)}
-                                            />
-                                        ) : null}
-                                    </Form.Item>
-                                ))}
-                                <Form.Item>
-                                    <Button
-                                        type="dashed"
-                                        onClick={() => add()}
-                                        style={{ width: '60%' }}
-                                        icon={<PlusOutlined />}
-                                    >
-                                        Add field
-                                    </Button>
-                                    <Button
-                                        type="dashed"
-                                        onClick={() => {
-                                            add('The head item', 0);
-                                        }}
-                                        style={{ width: '60%', marginTop: '20px' }}
-                                        icon={<PlusOutlined />}
-                                    >
-                                        Add field at head
-                                    </Button>
-                                    <Form.ErrorList errors={errors} />
-                                </Form.Item>
-                                </>
-                            )}
-                                 {/*   {fields.map(({key, name, index, fieldKey, ...restField}) => (
-                                        <div key={key} style={{display: 'flex'}}>
-                                            <Form.Item
-                                                name="link"
-                                                rules={[
-                                                    {
-                                                        required: true,
-                                                        message:  'Please input your link!',
-                                                    },
-                                                ]} >
-                                                <Input placeholder="Commit/Pull request Link" />
-                                                <MinusCircleOutlined onClick={() => remove(name)} />
-                                            </Form.Item>
-                                        </div>
-                                    ))}
-                                    <Form.Item>
-                                        <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
-                                            Add Link
-                                        </Button>
-                                    </Form.Item>
-                                </>
-</Form.List>
-
-{/*<Form.Item
-                            label="Gtihub token"
-                            name="github_token"
-                            rules={[
-                                {
-                                    required: false,
-                                    message:  'Please input your token!',
-                                },
-                            ]}
-                        >
-                            <Input />
-                        </Form.Item>
-
-<Form.Item
-    wrapperCol={{
-        offset: 8,
-        span:   16,
-    }}
->
-    <Button type="primary" htmlType="submit">
-        Submit
-    </Button>
-</Form.Item>
-</Form>
- */
