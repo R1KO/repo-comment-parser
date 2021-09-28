@@ -107,6 +107,15 @@ class Github
             });
     };
 
+    async getPullRequestIssueComments(owner, repo, request, page, perPage) {
+        return await this.request(`https://api.github.com/repos/${owner}/${repo}/issues/${request}/comments?per_page=${perPage}&page=${page}`,
+            {
+                headers: {
+                    'Accept': 'application/vnd.github.squirrel-girl-preview+json',
+                },
+            });
+    };
+
     async getCommentReactionsList(owner, repo, comment) {
         return await this.getPaginatedList(
             async (page, perPage) => await this.getCommentReactions(owner, repo, comment, page, perPage),
@@ -230,6 +239,9 @@ class Github
         const reactionsMinus = ['-1'];
 
         for (const comment of comments) {
+            if (comment.user.type === 'Bot') {
+                continue;
+            }
             const authorId = comment.user.id.toString();
 
             let author = reviewers.get(authorId);
@@ -282,7 +294,12 @@ class Github
 
         if (params.pull) {
             const comments = await this.getCommentsListByPullRequest(params.owner, params.repo, params.pull);
+            const requestComents = await this.getPullRequestIssueComments(params.owner, params.repo, params.pull);
             console.log('comments', comments);
+            console.log('requestComents', requestComents);
+            if (requestComents && requestComents.length) {
+                comments.push(...requestComents);
+            }
 
             return await this.getPreparedData(comments);
         }

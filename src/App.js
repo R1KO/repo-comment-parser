@@ -65,7 +65,11 @@ function App() {
                         onFinishFailed={onFinishFailed}
                         autoComplete="off"
                         initialValues={{
-                            links: [''],
+                            // links: [''],
+                            links: [
+                                'https://github.com/saintbyte/carrier-analyzer/pull/7',
+                                'https://github.com/mbogomazov/angular-tictactoe-pwa/commit/428fb3da1f9f0684d65d154bca417a7f5832b648',
+                            ],
                             github_token: process.env.GTIHUB_TOKEN || '',
                         }}
                         {...formItemLayoutWithOutLabel}
