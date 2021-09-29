@@ -5,16 +5,6 @@ import {MinusCircleOutlined, PlusOutlined} from '@ant-design/icons';
 import React, {Fragment, useState} from 'react';
 import Report from './Report';
 
-// const formItemLayout = {
-//     labelCol:   {
-//         xs: {span: 24},
-//         sm: {span: 4},
-//     },
-//     wrapperCol: {
-//         xs: {span: 24},
-//         sm: {span: 20},
-//     },
-// };
 const formItemLayoutWithOutLabel = {
     wrapperCol: {
         xs: {span: 24, offset: 0},
@@ -35,9 +25,9 @@ function App() {
                 return;
             }
             const handler = getHandlerByUrl(link);
-            if (values.github_token.length) {
+            /*if (values.github_token.length) {
                 handler.setToken(values.github_token);
-            }
+            }*/
             let data = await handler.getDataByUrl(link);
             console.log('data:', data);
             if (!data) {
@@ -57,7 +47,6 @@ function App() {
         <div className="App" style={{marginTop: 100}}>
             <Row>
                 <Col span={12} offset={6}>
-                    {/*<DynamicFieldSet/>*/}
                     <Form
                         name="basic"
                         layout="vertical"
@@ -65,18 +54,19 @@ function App() {
                         onFinishFailed={onFinishFailed}
                         autoComplete="off"
                         initialValues={{
-                            // links: [''],
-                            links: [
-                                'https://github.com/saintbyte/carrier-analyzer/pull/7',
-                                'https://github.com/mbogomazov/angular-tictactoe-pwa/commit/428fb3da1f9f0684d65d154bca417a7f5832b648',
-                            ],
+                            links: [''],
+                            // for test
+                            // links: [
+                            //     'https://github.com/saintbyte/carrier-analyzer/pull/7',
+                            //     'https://github.com/mbogomazov/angular-tictactoe-pwa/commit/428fb3da1f9f0684d65d154bca417a7f5832b648',
+                            // ],
                             github_token: process.env.GTIHUB_TOKEN || '',
                         }}
                         {...formItemLayoutWithOutLabel}
                     >
 
 
-                        <Space direction="vertical" style={{width: '100%'}}>
+                       {/* <Space direction="vertical" style={{width: '100%'}}>
                             <Form.Item
                                 label="Gtihub token"
                                 name="github_token"
@@ -89,7 +79,7 @@ function App() {
                             >
                                 <Input style={{width: '70%'}} />
                             </Form.Item>
-                        </Space>
+                        </Space>*/}
 
                         <Form.List
                             name="links"
@@ -162,6 +152,15 @@ function App() {
                             <Report data={reportData.data}/>
                         </Card>);
                     })}
+                </Col>
+            </Row>
+            <Row>
+                <Col span={24}>
+                    <div id="powered_by">
+                        <a href="https://github.com/R1KO/repo-comment-parser">
+                            <img width="16" height="16" src="https://raw.githubusercontent.com/rdimascio/icons/master/icons/dark/github.svg" />
+                        </a> Powered by <a href="https://github.com/R1KO/repo-comment-parser">Github.com</a>
+                    </div>
                 </Col>
             </Row>
         </div>
