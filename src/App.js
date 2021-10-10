@@ -150,7 +150,9 @@ function App() {
             <Row>
                 <Col span={24}>
                     {reportsData.length !== 0 && reportsData.map((reportData) => {
-                        return (<Card key={reportData.link} title={<a href={reportData.link}>{reportData.link}</a>} style={{ width: '100%' }}>
+                        return (<Card key={reportData.link}
+                                      title={<a href={reportData.link} target="_blank" rel="noreferrer noopener">{reportData.link}</a>}
+                                      style={{ width: '100%' }}>
                             <Report data={reportData.data}/>
                         </Card>);
                     })}
