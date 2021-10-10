@@ -10,16 +10,12 @@ export default (props) => {
             key: 'reviewer',
             render: (reviewer) => <a href={reviewer.url} target="_blank" rel="noreferrer noopener">{reviewer.name}</a>,
         },
-        // {
-        //     title: 'Кол-во сессий',
-        //     dataIndex: 'sessions',
-        //     key: 'sessions',
-        // },
-        // {
-        //     title: 'Кол-во коммитов',
-        //     dataIndex: 'commits',
-        //     key: 'commits',
-        // },
+
+        {
+            title: 'Кол-во репозиториев',
+            key: 'repos',
+            dataIndex: 'repos',
+        },
         {
             title: 'Кол-во комментариев',
             key: 'comments',
@@ -43,8 +39,7 @@ export default (props) => {
             url: item.url,
             name: item.login,
         },
-        // sessions: 2, // TODO
-        // commits: 2, // TODO
+        repos: item.repos,
         comments: item.comments,
         repPlus: item.reactionsPlus,
         repMinus: item.reactionsMinus,

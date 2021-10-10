@@ -4,6 +4,8 @@ import {getHandlerByUrl} from './common/urlParser';
 import {MinusCircleOutlined, PlusOutlined} from '@ant-design/icons';
 import React, {Fragment, useState} from 'react';
 import Report from './Report';
+import aggregate from "./common/aggregate";
+import TotalReport from "./TotalReport";
 
 const formItemLayoutWithOutLabel = {
     wrapperCol: {
@@ -152,6 +154,10 @@ function App() {
                             <Report data={reportData.data}/>
                         </Card>);
                     })}
+                    {reportsData.length > 1 && (<Card key='total' title='Total' style={{ width: '100%' }}>
+                            <TotalReport data={aggregate(reportsData)}/>
+                        </Card>)
+                    }
                 </Col>
             </Row>
             <Row>
