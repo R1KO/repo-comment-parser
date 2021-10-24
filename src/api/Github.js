@@ -134,6 +134,7 @@ class Github
             if (comment.user.type === 'Bot') {
                 continue;
             }
+
             const authorId = comment.user.id.toString();
 
             let author = reviewers.get(authorId);
@@ -157,7 +158,7 @@ class Github
             }
             for (const reaction of reactionsMinus) {
                 if (comment.reactions.hasOwnProperty(reaction) && comment.reactions[reaction]) {
-                    author.reactionsPlus += comment.reactions[reaction];
+                    author.reactionsMinus += comment.reactions[reaction];
                 }
             }
 
